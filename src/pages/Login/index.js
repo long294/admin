@@ -1,16 +1,42 @@
-import React, { Component } from 'react'
-import { Button, Checkbox, Form, Input,Card } from 'antd';
-
+import React from 'react'
+import { Button, Checkbox, Form, Input,Card,message} from 'antd';
+import {login} from '../../api/index'
+import {useNavigate} from 'react-router-dom';
 import './index.scss'
-const onFinish = (values) => {
-  console.log('Success:', values);
-};
 
-
-export default class Login extends Component {
-  render() {
-    return (
-      <div className='login'> 
+export default function Login() {
+ let state = {
+    // 加载状态
+    loading:false
+  }
+  let navigate = useNavigate()
+  const onFinish =async({mobile,code})=>{
+    const change =()=>{this.setState({
+      loading:true
+    })
+  }
+    try{
+       const res = await login(mobile,code)
+       
+     
+       message.success('登录成功',1,function(){
+        const token = res.data.data.token
+        localStorage.setItem("token",token)
+        navigate('/layout')
+       })
+       
+     
+      }catch(error){
+       message.warning(error.response.data.message,1,function(){
+        const change =()=>{this.setState({
+          loading:false
+        })
+        }
+       })
+      }
+    }
+  return (
+    <div className='login'> 
        <Card className='login-container'>
        <h2><strong>速知网登录</strong></h2>
        <Form className='form'
@@ -18,15 +44,14 @@ export default class Login extends Component {
     labelCol={{ span: 4 }}
     wrapperCol={{ span: 18 }}
     style={{ maxWidth: 600 }}
-    initialValues={{ username:'13911111111',password:'246810'}}
+    initialValues={{ mobile:'13811111111',code:'246810'}}
     onFinish={onFinish}
-   
     autoComplete="off"
   >
   
     <Form.Item
       label="用户名"
-      name="username"
+      name="mobile"
       rules={[{ required: true, message: '用户名不为空' },{
         pattern:/^1[3-9]\d{9}$/,
         message:'用户名(手机号)格式错误',
@@ -38,7 +63,7 @@ export default class Login extends Component {
 
     <Form.Item
       label="密码"
-      name="password"
+      name="code"
       rules={[{ required: true, message: '请输入你的密码' },
     {
       max:10,
@@ -63,12 +88,12 @@ export default class Login extends Component {
     </Form.Item>
 
     <Form.Item wrapperCol={{ offset: 4  , span: 18 }}>
-      <Button type="primary" htmlType="submit" block>
+      <Button type="primary" htmlType="submit" block loading={state.loading}  >
         登录
       </Button>
     </Form.Item>
   </Form>
     </Card></div>
-    )
-  }
+  )
+
 }
